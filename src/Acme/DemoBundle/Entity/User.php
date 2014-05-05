@@ -1,16 +1,16 @@
 <?php
 namespace Acme\DemoBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\AdvancedUserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Acme\DemoBundle\Entity\Role;
 
 /**
- * Acme\UserBundle\Entity\User
- *
  * @ORM\Table(name="acme_users")
- * @ORM\Entity(repositoryClass="Acme\DemoBundle\Entity\UserRepository")
+ * @ORM\Entity()
  */
 class User implements AdvancedUserInterface, \Serializable,EquatableInterface
 {
@@ -27,10 +27,16 @@ class User implements AdvancedUserInterface, \Serializable,EquatableInterface
     private $username;
 
     /**
-     * @ORM\Column(type="string", length=64)
+     * @ORM\Column(type="string", length=255)
+     */
+    private $salt;
+    
+    /**
+     * @ORM\Column(type="string", length=255)
      */
     private $password;
 
+    
     /**
      * @ORM\Column(type="string", length=60, unique=true)
      */
@@ -65,14 +71,16 @@ class User implements AdvancedUserInterface, \Serializable,EquatableInterface
         return $this->username;
     }
 
+    public function setSalt($salt)
+    {
+        $this->salt = $salt;
+    }
     /**
      * @inheritDoc
      */
     public function getSalt()
     {
-        // you *may* need a real salt depending on your encoder
-        // see section on salt below
-        return null;
+        return $this->salt;
     }
 
     /**
@@ -201,4 +209,27 @@ class User implements AdvancedUserInterface, \Serializable,EquatableInterface
         return $this->id === $user->getId();
     }
 
+
+    /**
+     * Add roles
+     *
+     * @param \Acme\DemoBundle\Entity\Role $roles
+     * @return User
+     */
+    public function addRole(Role $role)
+    {
+        $this->roles[] = $role;
+        $role->addUser($this);
+        return $this;
+    }
+
+    /**
+     * Remove roles
+     *
+     * @param \Acme\DemoBundle\Entity\Role $roles
+     */
+    public function removeRole(Role $role)
+    {
+        $this->roles->removeElement($role);
+    }
 }
